@@ -16,10 +16,7 @@ class TrackController extends Controller
         // Generar la URL de seguimiento única
         $trackingUrl = Url::to(['track/get-location', 'id' => Yii::$app->security->generateRandomString()], true);
 
-        // Configurar las credenciales de Twilio
-        $sid = 'ACb865167f67aa73782a5d62cd95e0a5c6';
-        $token = '28b706b006c01d2d246694ea63fd38cb';
-        $twilioNumber = '+12622628303';
+        
 
         // Crear el cliente Twilio
         $twilio = new Client($sid, $token);
