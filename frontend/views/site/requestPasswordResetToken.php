@@ -1,0 +1,35 @@
+<?php
+
+/** @var yii\web\View $this */
+/** @var yii\bootstrap5\ActiveForm $form */
+/** @var \frontend\models\PasswordResetRequestForm $model */
+
+use yii\bootstrap5\Html;
+use yii\bootstrap5\ActiveForm;
+
+$this->title = 'Reestablecer contraseña';
+$this->params['breadcrumbs'][] = $this->title;
+?>
+<div class="site-request-password-reset">
+    <h1><?= Html::encode($this->title) ?></h1>
+
+    <p>Por favor introduzca su e-mail. Se le enviará un link para reestablecer su contraseña.</p>
+
+    <div class="row">
+        <div class="col-lg-5">
+            <?php $form = ActiveForm::begin(['id' => 'request-password-reset-form']); ?>
+
+                <?= $form->field($model, 'email')->textInput(['autofocus' => true]) ?>
+            <?= $form->field($model, 'captcha')->widget(
+    himiklab\yii2\recaptcha\ReCaptcha::class,
+    ['siteKey' => '6LcCaN8mAAAAAPCR3D4hY7tlJCCzVWwIjnDI2F4X']
+    )->label(false) ?>
+
+                <div class="form-group">
+                    <?= Html::submitButton('Enviar', ['class' => 'btn btn-primary']) ?>
+                </div>
+
+            <?php ActiveForm::end(); ?>
+        </div>
+    </div>
+</div>
