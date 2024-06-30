@@ -4,9 +4,9 @@ return [
     'components' => [
         'db' => [
             'class' => \yii\db\Connection::class,
-            'dsn' => 'mysql:host=localhost;dbname=prueba',
+            'dsn' => 'mysql:host=localhost;dbname=prototipo_cea',
             'username' => 'root',
-            'password' => 'cea6426',
+            'password' => '',
             'charset' => 'utf8',
         ],
         'mailer' => [
