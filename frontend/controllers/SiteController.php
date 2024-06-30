@@ -168,7 +168,7 @@ public function actionAgendarTurno()
         $conductor = Conductor::find()
             ->select(['conductor_nombre'])
             ->where(['cliente_cuit' => $cuit])
-            ->indexBy('conductor_nombre')
+            ->indexBy('conductor_dni')
             ->column();
     }
 
@@ -185,6 +185,7 @@ public function actionAgendarTurno()
                 $turno->usuario_id = $usuarioId;
             }
             $turno->save();
+            Yii::$app->session->setFlash('success', 'Turno agendado con éxito.');
             return $this->redirect(['turnos']);
         }
     }
@@ -249,7 +250,7 @@ public function actionReprogramarTurno($turnoId)
     public function actionEliminarTurno($turnoId)
     {
             $this->findTurno($turnoId)->delete();
-
+            Yii::$app->session->setFlash('success', 'Turno cancelado.');    
             return $this->redirect(['turnos']);
     }
 
@@ -373,7 +374,11 @@ public function actionAgregarProducto()
     return $this->redirect(['productos']);
 }
 
-
+public function actionUbicacion()
+    {
+        return $this->render('ubicacion');
+    }
+    
     public function behaviors()
         {
         return [

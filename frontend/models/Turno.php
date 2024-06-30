@@ -8,14 +8,14 @@ use Yii;
  * This is the model class for table "turno".
  *
  * @property int $turno_id
- * @property string|null $turno_hora
- * @property string|null $turno_fecha
+ * @property string $turno_hora
+ * @property string $turno_fecha
  * @property int|null $turno_estado
- * @property int $usuario_id
+ * @property int|null $usuario_id
  * @property string $vehiculo_patente
  * @property string $conductor_dni
- * @property string|null $turno_producto
- * @property float|null $turno_cantidad
+ * @property string $turno_producto
+ * @property float $turno_cantidad
  * @property string|null $turno_observacion
  */
 class Turno extends \yii\db\ActiveRecord
@@ -34,13 +34,13 @@ class Turno extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['turno_hora', 'turno_fecha'], 'safe'],
+            [['turno_hora', 'turno_fecha', 'vehiculo_patente', 'conductor_dni', 'turno_producto', 'turno_cantidad'], 'required'],
+            [['turno_fecha'], 'safe'],
             [['turno_estado', 'usuario_id'], 'integer'],
-            [['vehiculo_patente', 'conductor_dni'], 'required'],
             [['turno_cantidad'], 'number'],
             [['turno_observacion'], 'string'],
-            [['vehiculo_patente'], 'string', 'max' => 15],
             [['turno_hora'], 'string', 'max' => 10],
+            [['vehiculo_patente'], 'string', 'max' => 15],
             [['conductor_dni'], 'string', 'max' => 50],
             [['turno_producto'], 'string', 'max' => 255],
         ];
@@ -53,18 +53,17 @@ class Turno extends \yii\db\ActiveRecord
     {
         return [
             'turno_id' => Yii::t('app', 'Turno ID'),
-            'turno_hora' => Yii::t('app', 'Turno Hora'),
-            'turno_fecha' => Yii::t('app', 'Turno Fecha'),
-            'turno_estado' => Yii::t('app', 'Turno Estado'),
+            'turno_hora' => Yii::t('app', 'Horario'),
+            'turno_fecha' => Yii::t('app', 'Fecha'),
+            'turno_estado' => Yii::t('app', 'Estado'),
             'usuario_id' => Yii::t('app', 'Usuario ID'),
-            'vehiculo_patente' => Yii::t('app', 'Vehiculo Patente'),
-            'conductor_dni' => Yii::t('app', 'Conductor Dni'),
-            'turno_producto' => Yii::t('app', 'Turno Producto'),
-            'turno_cantidad' => Yii::t('app', 'Turno Cantidad'),
-            'turno_observacion' => Yii::t('app', 'Turno Observacion'),
+            'vehiculo_patente' => Yii::t('app', 'Vehiculo'),
+            'conductor_dni' => Yii::t('app', 'Conductor'),
+            'turno_producto' => Yii::t('app', 'Producto'),
+            'turno_cantidad' => Yii::t('app', 'Cantidad'),
+            'turno_observacion' => Yii::t('app', 'Observacion'),
         ];
     }
-    
      public function getClientes()
     {
         return $this->hasOne(Clientes::class, ['usuario_id' => 'usuario_id']);

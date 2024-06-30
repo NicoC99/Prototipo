@@ -90,6 +90,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <th style="width: 100px;">Estado</th>
             <th>Acciones</th>
             <th colspan="5" style="max-width: 300px;">Observaciones</th>
+            <th>Ubicación</th>
         </tr>
     </thead>
     <tbody>
@@ -144,6 +145,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <?= Html::submitButton('Guardar', ['class' => 'btn btn-sm btn-primary observacion-save-button', 'style' => 'display:none']) ?>
     <?= Html::endForm() ?>
 </td>
+<td><a class="btn btn-warning btn-custom" href="<?= Url::toRoute('site/ubicacion') ?>">MAPA</a></td>
             </tr>
             <tr class="fila-edicion" style="display: none;" id="reprogramarForm-<?= $turno->turno_id ?>">
                 <td colspan="11">
@@ -219,5 +221,6 @@ document.addEventListener('DOMContentLoaded', function() {
 <p style='text-align:center'>
     <a class="btn btn-lg btn-success" href="<?= Url::toRoute("site/horarios") ?>">MODIFICAR HORARIOS</a>
     <a class="btn btn-lg btn-success" href="<?= Url::toRoute("site/productos") ?>">MODIFICAR PRODUCTOS</a>
+    
     
 </p>

@@ -14,7 +14,7 @@ $this->title = Yii::t('app', 'Turnos de hoy');
 $this->registerAssetBundle(\yii\web\JqueryAsset::class);
 $this->registerAssetBundle(\yii\jui\JuiAsset::class);
 ?>
-
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Mostrar u ocultar formulario de reprogramación al hacer clic en el botón "R"
@@ -70,6 +70,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <th>Tn</th>
             <th>Estado</th>
             <th>Acciones</th>
+            <th>Ubicación</th>
         </tr>
     </thead>
     <tbody>
@@ -91,6 +92,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     ]) ?>
                 <?= Html::a('X', ['site/eliminar-turno', 'turnoId' => $turno->turno_id], ['class' => 'btn btn-sm btn-danger', 'data-confirm' => '¿Está seguro de que desea cancelar el turno?', 'data-method' => 'post']) ?>
                 </td>
+               <td><a class="btn btn-warning btn-custom" href="<?= Url::toRoute('site/ubicacion') ?>">MAPA</a></td>
             
         </tr>
         <tr class="fila-edicion" style="display: none;" id="reprogramarForm-<?= $turno->turno_id ?>">
@@ -168,7 +170,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <p style='text-align:center'>
     <a class="btn btn-lg btn-success" href="<?= Url::toRoute("conductor/conductores") ?>">CONDUCTORES</a>
     <a class="btn btn-lg btn-success" href="<?= Url::toRoute("vehiculo/vehiculos") ?>">VEHÍCULOS</a>
-    <a class="btn btn-lg btn-success" href="<?= Url::toRoute("clientes/clientes") ?>">CLIENTES</a>
+    <a class="btn btn-lg btn-success" href="<?= Url::toRoute("clientes/clientes") ?>">MIS DATOS</a>
     <a class="btn btn-lg btn-success" href="<?= Url::toRoute("site/agendar-turno") ?>">AGENDAR TURNO</a>
 </p>
 

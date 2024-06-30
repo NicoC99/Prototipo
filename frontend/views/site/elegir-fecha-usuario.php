@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Manejar el botón de "Cancelar" en el formulario de reprogramación
-    document.querySelectorAll('.cancelar-button').forEach(function(button) {
+     document.querySelectorAll('.cancelar-reprogramacion').forEach(function(button) {
         button.addEventListener('click', function(event) {
             event.preventDefault();
             const turnoId = this.getAttribute('data-turno-id');
@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <a href="<?= Url::toRoute("site/turnos") ?>">Inicio</a> / Turnos del día
 </p>
 
-<h1><center>Turnos del día - <?= date('d-m-Y') ?></center></h1>
+<h1><center>Turnos del día - <?= date('d-m-Y', strtotime($fecha)) ?></center></h1>
 
 <?php if (!empty($turnosSeleccionados)): ?>
     <table class="table table-bordered tabla-turnos">
@@ -96,11 +96,8 @@ document.addEventListener('DOMContentLoaded', function() {
                             'class' => 'btn btn-sm btn-primary reprogramar-button',
                             'data-turno-id' => $turno->turno_id
                         ]) ?>
-                        <?= Html::a('Eliminar', ['site/eliminar-turno', 'turno_id' => $turno->turno_id], [
-                            'class' => 'btn btn-sm btn-danger',
-                            'data-confirm' => '¿Está seguro de que desea cancelar el turno?',
-                            'data-method' => 'post'
-                        ]) ?>
+                        <?= Html::a('X', ['site/eliminar-turno', 'turnoId' => $turno->turno_id], ['class' => 'btn btn-sm btn-danger', 'data-confirm' => '¿Está seguro de que desea cancelar el turno?', 'data-method' => 'post']) ?>
+        
                     </td>
                 </tr>
                 <tr class="fila-edicion" style="display: none;" id="reprogramarForm-<?= $turno->turno_id ?>">
@@ -131,7 +128,7 @@ document.addEventListener('DOMContentLoaded', function() {
                              <?= $form->field($turno, 'turno_hora')->dropDownList($horarios, ['prompt' => 'Seleccionar horario'])->label('Horario') ?>
                             <div class="form-group">
                                 <?= Html::submitButton('Reprogramar', ['class' => 'btn btn-primary']) ?>
-                                <?= Html::button('Cancelar', ['class' => 'btn btn-danger cancelar-button', 'data-turno-id' => $turno->turno_id]) ?>
+                                <?= Html::a('Cancelar', '#', ['class' => 'btn btn-danger cancelar-reprogramacion', 'data-turno-id' => $turno->turno_id]) ?>
                             </div>
                         <?php ActiveForm::end(); ?>
                     </td>
