@@ -5,7 +5,7 @@ return [
         'name' => 'Turnos San Máximo',
         'db' => [
             'class' => \yii\db\Connection::class,
-            'dsn' => 'mysql:host=localhost;dbname=Prueba',
+            'dsn' => 'mysql:host=localhost;dbname=prototipo_cea',
             'username' => 'root',
             'password' => '',
             'charset' => 'utf8',
