@@ -11,8 +11,8 @@ $this->title = Yii::t('app', 'Lista de turnos');
 
 <h1>Lista de turnos</h1>
 
-<table class="table table-bordered">
-    <thead>
+<table class="table table-bordered tabla-turnos">
+    
         <tr>
             <th>Turno</th>
             <th>Fecha</th>
@@ -25,9 +25,9 @@ $this->title = Yii::t('app', 'Lista de turnos');
             <th>Estado</th>
             <th style="max-width: 120px;">Observaciones</th>
         </tr>
-    </thead>
-    <tbody>
-        <?php foreach ($model as $turno): ?>
+
+    
+        <?php foreach ($turnos as $turno): ?>
             <tr>
                 <td><?= $turno->turno_id ?></td>
                 <td><?= $turno->turno_fecha ?></td>
@@ -37,16 +37,16 @@ $this->title = Yii::t('app', 'Lista de turnos');
                 <td><?= $turno->vehiculo ? $turno->vehiculo->vehiculo_patente : 'N/A' ?></td>
                 <td><?= $turno->turno_producto ?></td>
                 <td><?= $turno->turno_cantidad ?></td>
-                <td><?= getEstadoText($turno->turno_estado) ?></td>
+                <td><?= getEstado($turno->turno_estado) ?></td>
                 <td style="max-width: 120px; word-wrap: break-word;"><?= Html::encode($turno->turno_observacion) ?></td>
             </tr>
         <?php endforeach; ?>
-    </tbody>
+    
 </table>
 
 <?php
 // Helper function to get the text representation of the state
-function getEstadoText($estado)
+function getEstado($estado)
 {
     $estados = [
         1 => 'Pedido',

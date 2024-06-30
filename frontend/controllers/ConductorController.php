@@ -13,59 +13,87 @@ use frontend\models\Clientes;
  */
 class ConductorController extends Controller
 {
-     public function actionConductores(){
-        $admin= Yii::$app->session->get('usuario_admin');
-        $cuit= Yii::$app->session->get('cliente_cuit');
-        $conductor = new Conductor;
+     public function actionConductores() {
+    $admin = Yii::$app->session->get('usuario_admin');
+    $cuit = Yii::$app->session->get('cliente_cuit');
+    $conductor = new Conductor;
+    
+    if ($admin != 1) {
+        $conductorModel = new Conductor();
+        $conductores = $conductor->find()->where(['cliente_cuit' => $cuit])->all(); 
+        return $this->render("conductores-usuario", ['conductores' => $conductores, 'conductor' => $conductorModel,]);
+    } else {
+        $conductores = $conductor->find()->orderBy(['cliente_cuit' => SORT_ASC])->all(); 
+        $conductorModel = new Conductor();
+        $clientes = Clientes::find()
+            ->select(['cliente_razon_social'])
+            ->indexBy('cliente_cuit')
+            ->column();
         
-        
-        if ($admin != 1){
-           $model = $conductor->find()->where(['cliente_cuit' => $cuit])->all(); 
-        return $this->render("conductores-usuario", ["model" => $model]);
+        return $this->render("conductores-admin", [
+            'conductores' => $conductores,
+            'conductor' => $conductor,
+            'clientes' => $clientes,
+        ]); 
+    }
+}
+
+public function actionCrearConductor()
+{
+    $admin = Yii::$app->session->get('usuario_admin');    
+    $conductor = new Conductor();  
+
+    if ($admin != 1) {
+        if ($conductor->load(Yii::$app->request->post())) {
+            $conductor->cliente_cuit = Yii::$app->session->get('cliente_cuit');
+            if ($conductor->save()) {
+                Yii::$app->session->setFlash('success', '¡Conductor creado correctamente!');
+                return $this->redirect(['conductores']);
+            } else {
+                Yii::$app->session->setFlash('error', 'Hubo un error al crear el conductor.');
+            }
+        }
+
+        $conductores = Conductor::find()->where(['cliente_cuit' => Yii::$app->session->get('cliente_cuit')])->all();
+
+        return $this->render('conductores-usuario', [
+            'conductores' => $conductores,
+            'conductor' => $conductor,
+        ]);
+    } else {
+        $clientes = Clientes::find()
+            ->select(['cliente_razon_social'])
+            ->indexBy('cliente_cuit')
+            ->column();
+
+        if ($conductor->load(Yii::$app->request->post()) && $conductor->save()) {
+            Yii::$app->session->setFlash('success', '¡Conductor creado correctamente!');
+            return $this->redirect(['conductores']);
         } else {
-           $model = $conductor->find()->orderBy(['cliente_cuit' => SORT_ASC])->all(); 
-           return $this->render("conductores-admin", ["model" => $model]); 
+            Yii::$app->session->setFlash('error', 'Hubo un error al crear el conductor.');
         }
-        }
-        
-        public function actionCrearConductor()
-        {
-        $admin= Yii::$app->session->get('usuario_admin');    
-        $conductor = new Conductor();  
 
-            if ($admin != 1){
-            if ($conductor->load(Yii::$app->request->post())) {
-                $conductor->cliente_cuit = Yii::$app->session->get('cuit'); // Asignar el CUIT del usuario actual al campo "cliente"
-                if ($conductor->save()) {
-                    // El modelo se guardó correctamente, redirige a la lista de conductores
-                    return $this->redirect(['conductores']);
-                }
-            }
+        $conductores = Conductor::find()->all();
 
-            return $this->render('crear-conductor-usuario', ['conductor' => $conductor]);
-            }else{
-                 $clientes = Clientes::find()
-                ->select(['cliente_razon_social'])
-                ->indexBy('cliente_cuit')
-                ->column();
-                if ($conductor->load(Yii::$app->request->post())) {
-                if ($conductor->save()) {
-                    // El modelo se guardó correctamente, redirige a la lista de conductores
-                    return $this->redirect(['conductores']);
-                }
-            }
-            }
-            return $this->render('crear-conductor-admin', ['conductor' => $conductor,'clientes' =>$clientes]);
-
-        }
+        return $this->render('conductores-admin', [
+            'conductores' => $conductores,
+            'conductor' => $conductor,
+            'clientes' => $clientes,
+        ]);
+    }
+}
    
     
     
-   public function actionModificarConductor($dni)
+  public function actionModificarConductor($dni)
 {
     $admin = Yii::$app->session->get('usuario_admin');
     $cuit = Yii::$app->session->get('cliente_cuit');
     $conductor = $this->findConductor($dni);
+
+    if (!$conductor) {
+        throw new NotFoundHttpException('El conductor no existe.');
+    }
 
     if ($admin == 1) {
         // Para administrador
@@ -75,23 +103,27 @@ class ConductorController extends Controller
             ->column();
 
         if ($conductor->load(Yii::$app->request->post()) && $conductor->save()) {
+            Yii::$app->session->setFlash('success', 'Conductor modificado correctamente.');
             return $this->redirect(['conductores']);
         }
-        return $this->render('modificar-conductor-admin', ['conductor' => $conductor, 'clientes' => $clientes]);
+        Yii::$app->session->setFlash('error', 'Hubo un error al modificar el conductor.');
+        return $this->render('conductores-admin', ['conductores' => Conductor::find()->all(), 'conductor' => $conductor, 'clientes' => $clientes]);
     } else {
         // Para usuario no administrador
         if ($conductor->load(Yii::$app->request->post()) && $conductor->save()) {
             $conductor->cliente_cuit = $cuit;
             $conductor->save();
+            Yii::$app->session->setFlash('success', 'Conductor modificado correctamente.');
             return $this->redirect(['conductores']);
         }
-        return $this->render('modificar-conductor-usuario', ['conductor' => $conductor]);
+        Yii::$app->session->setFlash('error', 'Hubo un error al modificar el conductor.');
+        return $this->render('conductores-usuario', ['conductores' => Conductor::find()->all(), 'conductor' => $conductor]);
     }
 }
-
     public function actionEliminarConductor($dni)
         {
         $this->findConductor($dni)->delete();
+        Yii::$app->session->setFlash('success', 'Conductor eliminado correctamente.');
         return $this->redirect(['conductores']);
         }
    

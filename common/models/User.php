@@ -64,7 +64,7 @@ class User extends ActiveRecord implements IdentityInterface
     /**
      * Finds user by username
      *
-     * @param string $username
+     * @param string $usuario_nombre
      * @return static|null
      */
     public static function findByUsername($usuario_nombre)
@@ -150,9 +150,9 @@ class User extends ActiveRecord implements IdentityInterface
      * @param string $password password to validate
      * @return bool if password provided is valid for current user
      */
-    public function validatePassword($usuario_clave)
+    public function validatePassword($password)
     {
-        return Yii::$app->security->validatePassword($usuario_clave, $this->password_hash);
+        return Yii::$app->security->validatePassword($password, $this->password_hash);
     }
 
     /**
@@ -160,9 +160,9 @@ class User extends ActiveRecord implements IdentityInterface
      *
      * @param string $password
      */
-    public function setPassword($usuario_clave)
+    public function setPassword($password)
     {
-        $this->password_hash = Yii::$app->security->generatePasswordHash($usuario_clave);
+        $this->password_hash = Yii::$app->security->generatePasswordHash($password);
     }
 
     /**

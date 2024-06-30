@@ -1,7 +1,6 @@
 <?php
 use yii\helpers\Html;
 use yii\helpers\Url;
-use yii\jui\DatePicker;
 use yii\widgets\ActiveForm;
 
 $this->title = Yii::t('app', 'Agendar turno');
@@ -21,7 +20,7 @@ $this->title = Yii::t('app', 'Agendar turno');
     <div class="row">
         <div class="col">
             <div class="form-group">
-                <?= $form->field($model, 'usuario_id')->dropDownList($clientes, ['prompt' => 'Seleccione'])->label('Cliente') ?>
+                <?= $form->field($turno, 'usuario_id')->dropDownList($clientes, ['prompt' => 'Seleccione'])->label('Cliente') ?>
             </div>
         </div>
     </div>
@@ -29,12 +28,12 @@ $this->title = Yii::t('app', 'Agendar turno');
     <div class="row">
         <div class="col">
             <div class="form-group">
-                <?= $form->field($model, 'conductor_dni')->dropDownList($conductor, ['prompt' => 'Seleccione']) ?>
+                <?= $form->field($turno, 'conductor_dni')->dropDownList($conductor, ['prompt' => 'Seleccione']) ?>
             </div>
         </div>
         <div class="col">
             <div class="form-group">
-                <?= $form->field($model, 'vehiculo_patente')->dropDownList($vehiculo, ['prompt' => 'Seleccione']) ?>
+                <?= $form->field($turno, 'vehiculo_patente')->dropDownList($vehiculo, ['prompt' => 'Seleccione']) ?>
             </div>
         </div>
     </div>
@@ -42,47 +41,30 @@ $this->title = Yii::t('app', 'Agendar turno');
     <div class="row">
         <div class="col">
             <div class="form-group">
-                <?= $form->field($model, 'turno_hora')->dropDownList([
-                    '8:00' => '8:00',
-                    '9:00' => '9:00',
-                    '10:00' => '10:00',
-                    '11:00' => '11:00',
-                    '15:00' => '15:00',
-                    '16:00' => '16:00',
-                    '17:00' => '17:00',
-                    '18:00' => '18:00',
-                ], ['prompt' => 'Seleccionar horario'])->label('Horario') ?>
+                <?= $form->field($turno, 'turno_hora')->dropDownList($horarios, ['prompt' => 'Seleccionar horario'])->label('Horario') ?>
             </div>
         </div>
         <div class="col">
             <div class="form-group">
-                <?= $form->field($model, 'turno_fecha', ['template' => "{label}\n{input}\n{hint}\n{error}"])->widget(\yii\jui\DatePicker::class, [
-                    'dateFormat' => 'yyyy-MM-dd',
-                    'options' => ['class' => 'form-control', 'autocomplete' => 'off'],
-                    'clientOptions' => [
-                        'beforeShowDay' => new \yii\web\JsExpression('function(date) {
-                            var day = date.getDay();
-                            if (day === 6 || day === 0) {
-                                return [false];
-                            }
-
-                            var holidays = ["2023-01-01", "2023-02-27", "2023-02-28", "2023-03-24", "2023-04-02", "2023-04-14", 
-                                            "2023-05-01", "2023-05-25", "2023-06-17", "2023-06-20", "2023-07-09", 
-                                            "2023-08-17", "2023-10-12", "2023-11-20", "2023-12-08", "2023-12-25"];
-                            var formattedDate = $.datepicker.formatDate("yy-mm-dd", date);
-                            if (holidays.indexOf(formattedDate) !== -1) {
-                                return [false];
-                            }
-                            
-                            var currentDate = new Date();
-                            currentDate.setHours(0, 0, 0, 0);
-                            if (date < currentDate) {
-                                return [false];
-                            }
-                            return [true];
-                        }'),
-                    ],
-                ])->label('Fecha') ?>
+                <?= $form->field($turno, 'turno_fecha', ['template' => "{label}\n{input}\n{hint}\n{error}"])->widget(\yii\jui\DatePicker::class, [
+    'dateFormat' => 'yyyy-MM-dd',
+    'options' => ['class' => 'form-control', 'autocomplete' => 'off'],
+    'clientOptions' => [
+        'beforeShowDay' => new \yii\web\JsExpression('function(date) {
+            var day = date.getDay();
+            if (day === 6 || day === 0) {
+                return [false];
+            }
+            
+            var currentDate = new Date();
+            currentDate.setHours(0, 0, 0, 0);
+            if (date < currentDate) {
+                return [false];
+            }
+            return [true];
+        }'),
+    ],
+])->label('Fecha') ?>
             </div>
         </div>
     </div>
@@ -93,32 +75,19 @@ $this->title = Yii::t('app', 'Agendar turno');
             <div class="row">
                 <div class="col">
                     <div class="form-group">
-                        <?= $form->field($model, 'turno_producto')->dropDownList([
-                            'GBB' => 'GBB',
-                            'EBB' => 'EBB',
-                            'G50P' => 'G50P',
-                            'E50P' => 'E50P',
-                            'G25P' => 'G25P',
-                            'E25P' => 'E25P',
-                            'GPISO' => 'G25PISO',
-                            'EPISO' => 'E25PISO',
-                            'GPISO' => 'G50PISO',
-                            'EPISO' => 'E50PISO',
-                            'PNCG' => 'PNCG',
-                            'PNCE' => 'PNCE',
-                        ], ['prompt' => 'SELECCIONAR PRODUCTO']) ?>
+                         <?= $form->field($turno, 'turno_producto')->dropDownList($productos, ['prompt' => 'SELECCIONAR PRODUCTO'])->label('Producto') ?>
                     </div>
                 </div>
                 <div class="col">
                     <div class="form-group">
-                        <?= $form->field($model, 'turno_cantidad')->textInput(['type' => 'number', 'min' => 0, 'step' => 0.01])->label('Cantidad en toneladas') ?>
+                        <?= $form->field($turno, 'turno_cantidad')->textInput(['type' => 'number', 'min' => 0, 'step' => 0.01])->label('Cantidad en toneladas') ?>
                     </div>
                 </div>
             </div>
         </div>
     </div>
     <br>
-    <?= $form->field($model, 'turno_observacion')->textInput(['prompt' => 'Observaciones:']) ?>
+    <?= $form->field($turno, 'turno_observacion')->textInput(['prompt' => 'Observaciones:']) ?>
     <br>
     <div style="width: 150px; margin: 0 auto;">
         <?= Html::submitButton('AGENDAR', ['class' => 'btn btn-primary']) ?>

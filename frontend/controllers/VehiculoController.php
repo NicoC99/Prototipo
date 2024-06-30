@@ -12,28 +12,36 @@ use frontend\models\Clientes;
 class VehiculoController extends Controller
 {
     // Acción para mostrar los camiones ingresados
+    
     public function actionVehiculos()
-    {
-        $admin = Yii::$app->session->get('usuario_admin');
-        $usuarioId = Yii::$app->session->get('usuario_id');
-        $cuit = Clientes::find()->select(['cliente_cuit'])->where(['usuario_id' => $usuarioId])->scalar();
-        $tabla = new Vehiculo;
+{
+    $admin = Yii::$app->session->get('usuario_admin');
+    $usuarioId = Yii::$app->session->get('usuario_id');
+    $cuit = Clientes::find()->select(['cliente_cuit'])->where(['usuario_id' => $usuarioId])->scalar();
+    $vehiculo = new Vehiculo;
 
-        if ($admin != 1) {
-            $model = $tabla->find()->where(['cliente_cuit' => $cuit])->all();
-            return $this->render("vehiculos-usuario", ["model" => $model]);
-        } else {
-            $model = $tabla->find()->orderBy(['cliente_cuit' => SORT_ASC])->all();
-            return $this->render("vehiculos-admin", ["model" => $model]);
-        }
+    if ($admin != 1) {
+        $vehiculos = $vehiculo->find()->where(['cliente_cuit' => $cuit])->all();
+        return $this->render("vehiculos-usuario", ["vehiculos" => $vehiculos, "vehiculo" => $vehiculo]);
+    } else {
+        $vehiculos = $vehiculo->find()->orderBy(['cliente_cuit' => SORT_ASC])->all();
+        $clientes = Clientes::find()
+            ->select(['cliente_razon_social'])
+            ->indexBy('cliente_cuit')
+            ->column();
+        return $this->render("vehiculos-admin", [
+            "vehiculos" => $vehiculos,
+            "vehiculo" => $vehiculo,
+            "clientes" => $clientes,
+        ]);
     }
-
+}
     // Acción para editar un vehículo
     public function actionModificarVehiculo($vehiculoPatente)
     {
         $admin = Yii::$app->session->get('usuario_admin');
         $cuit = Yii::$app->session->get('cliente_cuit');
-        $vehiculos = $this->findVehiculo($vehiculoPatente);
+        $vehiculo = $this->findVehiculo($vehiculoPatente);
 
         if ($admin == 1) {
             // Para administrador
@@ -42,54 +50,66 @@ class VehiculoController extends Controller
                 ->indexBy('cliente_cuit')
                 ->column();
 
-            if ($vehiculos->load(Yii::$app->request->post()) && $vehiculos->save()) {
+            if ($vehiculo->load(Yii::$app->request->post()) && $vehiculo->save()) {
+                Yii::$app->session->setFlash('success', 'Vehículo modificado correctamente.');
                 return $this->redirect(['vehiculos']);
             }
-            return $this->render('modificar-vehiculo-admin', ['vehiculos' => $vehiculos, 'clientes' => $clientes]);
+            Yii::$app->session->setFlash('error', 'Hubo un error al modificar el vehículo.');
+            return $this->render('vehiculos-admin', ['vehiculos' => Vehiculo::find()->all(),'vehiculo' => $vehiculo, 'clientes' => $clientes]);
         } else {
             // Para usuario no administrador
-            if ($vehiculos->load(Yii::$app->request->post()) && $vehiculos->save()) {
-                $vehiculos->cliente_cuit = $cuit;
-                $vehiculos->save();
+            if ($vehiculo->load(Yii::$app->request->post()) && $vehiculo->save()) {
+                $vehiculo->cliente_cuit = $cuit;
+                $vehiculo->save();
+                Yii::$app->session->setFlash('success', 'Vehículo modificado correctamente.');
                 return $this->redirect(['vehiculos']);
             }
-            return $this->render('modificar-vehiculo-usuario', ['vehiculos' => $vehiculos]);
+            Yii::$app->session->setFlash('error', 'Hubo un error al modificar el vehículo.');
+            return $this->render('vehiculos-usuario', ['vehiculos' => Vehiculo::find()->all(),'vehiculo' => $vehiculo]);
         }
     }
-
-    // Acción para borrar un camión
+    
     public function actionEliminarVehiculo($vehiculoPatente)
     {
         $this->findVehiculo($vehiculoPatente)->delete();
+        Yii::$app->session->setFlash('success', 'Vehículo eliminado correctamente.');
         return $this->redirect(['vehiculos']);
     }
 
-    // Acción para crear un nuevo camión
     public function actionCrearVehiculo()
     {
-        $model = new Vehiculo();
+        $vehiculo = new Vehiculo();
         $admin = Yii::$app->session->get('usuario_admin');
 
         if ($admin != 1) {
-            if ($model->load(Yii::$app->request->post())) {
-                $model->cliente_cuit = Yii::$app->session->get('cliente_cuit'); // Asignar el CUIT del usuario actual al campo "cliente"
-                if ($model->save()) {
+            if ($vehiculo->load(Yii::$app->request->post())) {
+                $vehiculo->cliente_cuit = Yii::$app->session->get('cliente_cuit'); // Asignar el CUIT del usuario actual al campo "cliente"
+                if ($vehiculo->save()) {
+                    Yii::$app->session->setFlash('success', '¡Vehículo creado correctamente!');
                     return $this->redirect(['vehiculos']);
-                }
+                } else {
+                Yii::$app->session->setFlash('error', 'Hubo un error al crear el vehículo.');
             }
-            return $this->render('crear-vehiculo-usuario', ['model' => $model]);
+            }
+             $vehiculos = Vehiculo::find()->where(['cliente_cuit' => Yii::$app->session->get('cliente_cuit')])->all();
+            return $this->render('vehiculos-usuario', ['vehiculo' => $vehiculo, 'vehiculos' => $vehiculos]);
         } else {
             $clientes = Clientes::find()
                 ->select(['cliente_razon_social'])
                 ->indexBy('cliente_cuit')
                 ->column();
 
-            if ($model->load(Yii::$app->request->post()) && $model->save()) {
+            if ($vehiculo->load(Yii::$app->request->post()) && $vehiculo->save()) {
+                Yii::$app->session->setFlash('success', '¡Vehículo creado correctamente!');
                 return $this->redirect(['vehiculos']);
+            } else{
+                Yii::$app->session->setFlash('error', 'Hubo un error al crear el vehículo.');
             }
-            return $this->render('crear-vehiculo-admin', ['model' => $model, 'clientes' => $clientes]);
+             $vehiculos = Vehiculo::find()->all();
+            return $this->render('vehiculos-admin', ['vehiculo' => $vehiculo, 'clientes' => $clientes, 'vehiculos' => $vehiculos]);
         }
     }
+
 
     // Método protegido para encontrar un modelo de camiones según el ID
     protected function findVehiculo($vehiculoPatente)

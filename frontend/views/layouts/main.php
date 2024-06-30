@@ -9,7 +9,6 @@ use yii\bootstrap5\Breadcrumbs;
 use yii\bootstrap5\Html;
 use yii\bootstrap5\Nav;
 use yii\bootstrap5\NavBar;
-use yii\helpers\Url;
 
 AppAsset::register($this);
 ?>
@@ -43,7 +42,7 @@ AppAsset::register($this);
         
     ];
         if (Yii::$app->user->isGuest){
-        $menuItems[] = ['label' => Yii::t('app', 'Signup'), 'url' => ['/site/signup']];
+        $menuItems[] = ['label' => Yii::t('app', 'Registrarse'), 'url' => ['/site/signup']];
         }
 
     echo Nav::widget([
@@ -51,11 +50,11 @@ AppAsset::register($this);
         'items' => $menuItems,
     ]);
     if (Yii::$app->user->isGuest) {
-        echo Html::tag('div',Html::a(Yii::t('app', 'Login'),['/site/login'],['class' => ['btn btn-link login text-decoration-none']]),['class' => ['d-flex']]);
+        echo Html::tag('div',Html::a(Yii::t('app', 'Ingresar'),['/site/login'],['class' => ['btn btn-link login text-decoration-none']]),['class' => ['d-flex']]);
     } else {
         echo Html::beginForm(['/site/logout'], 'post', ['class' => 'd-flex'])
             . Html::submitButton(
-                'Logout (' . Yii::$app->user->identity->usuario_nombre . ')',
+                'Cerrar sesión (' . Yii::$app->user->identity->usuario_nombre . ')',
                 ['class' => 'btn btn-link logout text-decoration-none']
             )
             . Html::endForm();
@@ -77,8 +76,8 @@ AppAsset::register($this);
 <footer class="footer mt-auto py-3 text-muted">
     <div class="container">
         <b> <p class="float-start">TURNOS SAN MAXIMO</p>
-            <p class="float-end">Desarrollado por <a href="http://infinito.ar" target="_blank">INFINITO - CONSULTORIA INFORMATICA
-                </a></p> </b>
+            <p class="float-end">Desarrollado por NICOLÁS CEA - UNIVERSIDAD SIGLO 21
+                </p> </b>
     </div>
 </footer>
 

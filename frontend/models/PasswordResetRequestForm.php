@@ -5,6 +5,7 @@ namespace frontend\models;
 use Yii;
 use yii\base\Model;
 use common\models\User;
+use frontend\models\Clientes;
 
 /**
  * Password reset request form
@@ -12,28 +13,27 @@ use common\models\User;
 class PasswordResetRequestForm extends Model
 {
     public $email;
-     public $captcha;
 
 
     /**
      * {@inheritdoc}
      */
-    public function rules()
-    {
-        return [
-            ['email', 'trim'],
-            ['email', 'required'],
-            ['email', 'email'],
-            ['email', 'exist',
-                'targetClass' => '\common\models\User',
-                'filter' => ['status' => User::STATUS_ACTIVE],
-                'message' => 'There is no user with this email address.'
-                
-            ],
-            ['captcha', \himiklab\yii2\recaptcha\ReCaptchaValidator::class, 'secret' => '6LcCaN8mAAAAAGYP2S6emkOZ74nez6sHgmF64JDy'],
-        
-        ];
-    }
+   public function rules()
+{
+    return [
+        ['email', 'trim'],
+        ['email', 'required'],
+        ['email', 'email'],
+        ['email', 'exist',
+            'targetClass' => Clientes::className(),
+            'targetAttribute' => ['email' => 'cliente_mail'],
+            'filter' => function($query) {
+                $query->joinWith('usuario')->andWhere([User::tableName() . '.status' => User::STATUS_ACTIVE]);
+            },
+            'message' => 'No hay ningún usuario registrado con ese e-mail.'
+        ],
+    ];
+}
 
     /**
      * Sends an email with a link, for resetting the password.
@@ -42,16 +42,23 @@ class PasswordResetRequestForm extends Model
      */
     public function sendEmail()
     {
-        /* @var $user User */
+        $cliente = Clientes::findOne([
+            'cliente_mail' => $this->email,
+        ]);
+
+        if (!$cliente) {
+            return false;
+        }
+
         $user = User::findOne([
             'status' => User::STATUS_ACTIVE,
-            'email' => $this->email,
+            'usuario_id' => $cliente->usuario_id,
         ]);
 
         if (!$user) {
             return false;
         }
-        
+
         if (!User::isPasswordResetTokenValid($user->password_reset_token)) {
             $user->generatePasswordResetToken();
             if (!$user->save()) {
@@ -67,7 +74,10 @@ class PasswordResetRequestForm extends Model
             )
             ->setFrom('support@infinito.ar')
             ->setTo($this->email)
-            ->setSubject('Password reset for ' . Yii::$app->name)
+            ->setSubject('Restablecimiento de contraseña para ' . Yii::$app->name)
             ->send();
     }
 }
+
+
+

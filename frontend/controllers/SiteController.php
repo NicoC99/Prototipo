@@ -19,6 +19,8 @@ use yii\web\NotFoundHttpException;
 use frontend\models\Clientes;
 use frontend\models\Vehiculo;
 use frontend\models\Conductor;
+use frontend\models\Horarios;
+use frontend\models\Productos;
 
 class SiteController extends Controller
 {
@@ -47,25 +49,33 @@ class SiteController extends Controller
         $tabla = new Turno;
         $usuarioId= Yii::$app->session->get('usuario_id');
         $admin= Yii::$app->session->get('usuario_admin');
-        
+        $horarios = Horarios::find()->orderBy('horario_hora ASC')->all();
+    $horariosArray = [];
+    foreach ($horarios as $horario) {
+        $horariosArray[$horario->horario_hora] = $horario->horario_hora;
+    }
         
        if ($admin == 1){
-           $model = $tabla ->find()->where(['turno_fecha'=> $fechaHoy])->orderBy(['turno_hora' => SORT_ASC])->all();
-           return $this->render("turnos-admin", ["model" => $model]);
+           $turnos = $tabla ->find()->where(['turno_fecha'=> $fechaHoy])->orderBy(['turno_hora' => SORT_ASC])->all();
+           return $this->render("turnos-admin", ["turnos" => $turnos,  'horarios' => $horariosArray,]);
        }else{
-            $model = $tabla ->find()->where(['usuario_id' => $usuarioId])->andWhere(['turno_fecha' => $fechaHoy])->orderBy(['turno_hora' => SORT_ASC])->all(); 
-            return $this->render("turnos-usuario", ["model" => $model]);
+            $turnos = $tabla ->find()->where(['usuario_id' => $usuarioId])->andWhere(['turno_fecha' => $fechaHoy])->orderBy(['turno_hora' => SORT_ASC])->all(); 
+            return $this->render("turnos-usuario", ["turnos" => $turnos,  'horarios' => $horariosArray,]);
        }
     } 
         
-    public function actionElegirFecha($fecha = null)
+public function actionElegirFecha($fecha = null)
 {
-    $model = new Turno();
+    $turnos = new Turno();
     $usuarioId = Yii::$app->session->get('usuario_id');
     $admin = Yii::$app->session->get('usuario_admin');
-    
-    if ($fecha === null && $model->load(Yii::$app->request->post())) {
-        $fecha = $model->turno_fecha;
+    $horarios = Horarios::find()->orderBy('horario_hora ASC')->all();
+    $horariosArray = [];
+    foreach ($horarios as $horario) {
+        $horariosArray[$horario->horario_hora] = $horario->horario_hora;
+    }
+    if ($fecha === null && $turnos->load(Yii::$app->request->post())) {
+        $fecha = $turnos->turno_fecha;
     }
     
     if ($fecha !== null) {
@@ -75,7 +85,7 @@ class SiteController extends Controller
                 ->orderBy(['turno_hora' => SORT_ASC])
                 ->all();
             return $this->render('elegir-fecha-admin', [
-                'turnosSeleccionados' => $turnosSeleccionados,
+                'turnosSeleccionados' => $turnosSeleccionados, 'fecha' => $fecha, 'horarios' => $horariosArray,
             ]);
         } else {
             $turnosSeleccionados = Turno::find()
@@ -83,12 +93,14 @@ class SiteController extends Controller
                 ->orderBy(['turno_hora' => SORT_ASC])
                 ->all();
             return $this->render('elegir-fecha-usuario', [
-                'turnosSeleccionados' => $turnosSeleccionados,
+                'turnosSeleccionados' => $turnosSeleccionados, 'fecha' => $fecha, 'horarios' => $horariosArray,
             ]);
         }
     }
     
-    return $this->redirect(['site/turnos']);
+    // Si no se especifica fecha y no se carga desde el formulario, redirigir o mostrar un mensaje de error
+    Yii::$app->session->setFlash('error', 'Debe seleccionar una fecha válida.');
+    return $this->redirect(['site/index']); // Puedes cambiar esto según tu flujo de la aplicación
 }
 
     
@@ -109,20 +121,27 @@ class SiteController extends Controller
         } else {
             Yii::$app->session->setFlash('error', 'Turno no encontrado.');
         }
-    } else {
-        Yii::$app->session->setFlash('error', 'Datos inválidos.');
-    }
-
-    return $this->redirect(['site/turnos']);
+    } 
+    return $this->redirect(['site/elegir-fecha', 'fecha' => $turno->turno_fecha]);
 }
 
 
 public function actionAgendarTurno()
 {
-    $model = new Turno();
+    $turno = new Turno();
     $usuarioId = Yii::$app->session->get('usuario_id');
     $admin = Yii::$app->session->get('usuario_admin');
-
+    $horarios = Horarios::find()->orderBy('horario_hora ASC')->all();
+    $horariosArray = [];
+    foreach ($horarios as $horario) {
+        $horariosArray[$horario->horario_hora] = $horario->horario_hora;
+    }
+    $productos = Productos::find()->orderBy('producto_nombre ASC')->all();
+    $productosArray = [];
+    foreach ($productos as $producto) {
+        $productosArray[$producto->producto_nombre] = $producto->producto_nombre;
+    }
+    
     if ($admin == 1) {
         $clientes = Clientes::find()
             ->select(['cliente_razon_social'])
@@ -153,60 +172,80 @@ public function actionAgendarTurno()
             ->column();
     }
 
-    if ($this->request->isPost && $model->load($this->request->post())) {
+    if ($this->request->isPost && $turno->load($this->request->post())) {
         $existingTurno = Turno::findOne([
-            'turno_hora' => $model->turno_hora,
-            'turno_fecha' => $model->turno_fecha,
+            'turno_hora' => $turno->turno_hora,
+            'turno_fecha' => $turno->turno_fecha,
         ]);
         if ($existingTurno) {
             // Mostrar un mensaje de error indicando que ya existe un turno en esa hora y día
-            $model->addError('turno_fecha', 'Ya existe un turno agendado para el dia y fecha solicitado.');
+            $turno->addError('turno_fecha', 'Ya existe un turno agendado para el dia y fecha solicitado.');
         } else {
             if ($admin != 1) {
-                $model->usuario_id = $usuarioId;
+                $turno->usuario_id = $usuarioId;
             }
-            $model->save();
+            $turno->save();
             return $this->redirect(['turnos']);
         }
     }
 
     if ($admin == 1) {
         return $this->render('agendar-turno-admin', [
-            'model' => $model,
+            'turno' => $turno,
             'clientes' => $clientes,
             'vehiculo' => $vehiculo,
             'conductor' => $conductor,
+            'horarios' => $horariosArray,
+            'productos' => $productosArray,
         ]);
     } else {
         return $this->render('agendar-turno-usuario', [
-            'model' => $model,
+            'turno' => $turno,
             'conductor' => $conductor,
             'vehiculo' => $vehiculo,
+            'horarios' => $horariosArray,
+            'productos' => $productosArray,
         ]);
     }
 }
      
-    public function actionReprogramarTurno($turnoId)
-    {
-            $model = $this->findTurno($turnoId); 
-            if ($this->request->isPost) {
-            if ($model->load($this->request->post())) {
-             $existingTurno = Turno::findOne([
-                'turno_hora' => $model->turno_hora,
-                'turno_fecha' => $model->turno_fecha,
-            ]);
-               if ($existingTurno) {
-                // Mostrar un mensaje de error indicando que ya existe un turno en esa hora y día
-                $model->addError('turno_fecha', 'Ya existe un turno agendado para el dia y fecha solicitado.');
-            } else {
-                     $model->turno_estado = 1;
-                     $model->save(); 
-                     return $this->redirect('turnos');
-            }}} 
-            return $this->render('reprogramar-turno', ['model' => $model]);
+public function actionReprogramarTurno($turnoId)
+{
+    $turno = Turno::findOne($turnoId);
+
+    if (!$turno) {
+        Yii::$app->session->setFlash('error', 'El turno especificado no existe.');
+        return $this->redirect(['site/turnos']);
+    }
+
+    if ($this->request->isPost && $turno->load($this->request->post())) {
+        // Validar si ya existe un turno para la misma fecha y hora
+        $existingTurno = Turno::find()
+            ->where([
+                'and',
+                ['!=', 'turno_id', $turnoId], // Excluir el turno actual
+                ['turno_hora' => $turno->turno_hora],
+                ['turno_fecha' => $turno->turno_fecha],
+            ])
+            ->one();
+
+        if ($existingTurno) {
+            // Mostrar un mensaje de error indicando que ya existe un turno en esa hora y día
+            Yii::$app->session->setFlash('error', 'Ya existe un turno agendado para la fecha y hora seleccionada.');
+            return $this->redirect(['site/elegir-fecha', 'fecha' => $turno->turno_fecha]);
+        } else {
+            // Guardar el turno reprogramado
+            if ($turno->save()) {
+                Yii::$app->session->setFlash('success', 'El turno se ha reprogramado correctamente.');
+                return $this->redirect(['site/elegir-fecha', 'fecha' => $turno->turno_fecha]);
+            }
+        }
     }
     
-
+    // Si no es una solicitud POST o no se carga correctamente el turno
+    return $this->redirect(['site/elegir-fecha', 'fecha' => $turno->turno_fecha]);
+}
+   
     public function actionEliminarTurno($turnoId)
     {
             $this->findTurno($turnoId)->delete();
@@ -216,8 +255,8 @@ public function actionAgendarTurno()
 
     protected function findTurno($turnoId)
     {
-            if (($model = Turno::findOne($turnoId)) !== null) {
-                return $model;
+            if (($turno = Turno::findOne($turnoId)) !== null) {
+                return $turno;
             }
             throw new NotFoundHttpException('El turno no existe.');
     }
@@ -229,41 +268,112 @@ public function actionAgendarTurno()
     $admin = Yii::$app->session->get('usuario_admin');
 
     if ($admin == 1) {
-        $model = Turno::find()->orderBy(['turno_id' => SORT_ASC, 'turno_hora' => SORT_ASC])->all();
+        $turnos = Turno::find()->orderBy(['turno_id' => SORT_ASC, 'turno_hora' => SORT_ASC])->all();
             
     } else {
-        $model = Turno::find()->where(['usuario_id' => $usuarioId])
+        $turnos = Turno::find()->where(['usuario_id' => $usuarioId])
             ->orderBy(['turno_id' => SORT_ASC, 'turno_hora' => SORT_ASC])->all();
     }
 
-    return $this->render("lista-turnos", ["model" => $model]);
+    return $this->render("lista-turnos", ['turnos' => $turnos]);
 }
 
 
 
 
-public function actionEditarObservacion($turno_id, $fecha)
+public function actionEditarObservacion()
 {
-    // Encuentra el turno por su ID
-    $turno = Turno::findOne($turno_id);
+    if (Yii::$app->request->isPost) {
+        $turno_id = Yii::$app->request->post('turno_id');
+        $turno = Turno::findOne($turno_id);
 
-    if ($turno === null) {
-        throw new NotFoundHttpException('El turno no existe.');
+        if ($turno === null) {
+            throw new NotFoundHttpException('El turno no existe.');
+        }
+
+        $turno->turno_observacion = Yii::$app->request->post('turno_observacion');
+        if ($turno->save()) {
+            Yii::$app->session->setFlash('success', 'Observación guardada correctamente.');
+        } else {
+            Yii::$app->session->setFlash('error', 'No se pudo guardar la observación.');
+        }
+
+        return $this->redirect(['site/elegir-fecha', 'fecha' => $turno->turno_fecha]);
     }
 
-    // Si el formulario se envía
-    if ($turno->load(Yii::$app->request->post()) && $turno->save()) {
-        Yii::$app->session->setFlash('success', 'Guardado correctamente.');
-        // Redirige a la acción elegir-fecha con la fecha del turno como parámetro
-        return $this->redirect(['site/elegir-fecha', 'fecha' => $fecha]);
-    }
-
-    // Renderiza la vista de edición de observaciones
-    return $this->render('editar-observacion', [
-        'turno' => $turno,
-    ]);
+    throw new BadRequestHttpException('Solicitud no válida.');
 }
    
+public function actionHorarios(){
+    $horarios = Horarios::find()->all();
+    
+    
+    return $this->render('horarios', ['horarios' => $horarios]);
+}
+public function actionEliminarHorario($horarioId)
+        {
+        if (($horario = Horarios::findOne($horarioId)) !== null){
+           $horario->delete();
+           Yii::$app->session->setFlash('success', 'Horario eliminado correctamente.');
+        }
+        
+        return $this->redirect(['horarios']);
+        }
+public function actionAgregarHorario()
+{
+    $model = new Horarios();
+
+    if (Yii::$app->request->post()) {
+        $hora = Yii::$app->request->post('hora');
+        $minutos = Yii::$app->request->post('minutos');
+        $model->horario_hora = $hora . ':' . $minutos;
+
+        if ($model->save()) {
+            Yii::$app->session->setFlash('success', 'Horario agregado correctamente.');
+        } else {
+            Yii::$app->session->setFlash('error', 'Error al agregar el horario.');
+        }
+    }
+
+    return $this->redirect(['horarios']);
+}
+
+public function actionProductos()
+{
+    $model = new Productos(); // Crear una instancia del modelo Productos
+    $productos = Productos::find()->all();
+    
+    return $this->render('productos', [
+        'model' => $model,   // Pasar el modelo a la vista
+        'productos' => $productos,
+    ]);
+}
+
+public function actionEliminarProducto($productoId)
+        {
+        if (($producto = Productos::findOne($productoId)) !== null){
+           $producto->delete();
+           Yii::$app->session->setFlash('success', 'Horario eliminado correctamente.');
+        }
+        
+        return $this->redirect(['productos']);
+        }
+        
+        
+public function actionAgregarProducto()
+{
+    $model = new Productos();
+
+    if ($model->load(Yii::$app->request->post()) && $model->save()) {
+        Yii::$app->session->setFlash('success', 'Producto agregado correctamente.');
+    } else {
+        Yii::$app->session->setFlash('error', 'Error al agregar el producto.');
+    }
+
+    return $this->redirect(['productos']);
+}
+
+
     public function behaviors()
         {
         return [
@@ -305,15 +415,17 @@ public function actionEditarObservacion($turno_id, $fecha)
             ];
         }
 
-    public function actionIndex()
-    {
-        return $this->redirect('site/turnos');
+   public function actionIndex()
+{
+    if (Yii::$app->user->isGuest) {
+        return $this->redirect(['site/login']);
+    } else {
+        return $this->redirect(['site/turnos']);
     }
+}
 
     public function actionLogin()
         {
-            
-
             $model = new LoginForm();
             if ($model->load(Yii::$app->request->post()) && $model->login()) {
                 return $this->goBack();
@@ -350,7 +462,7 @@ public function actionEditarObservacion($turno_id, $fecha)
             $cliente->cliente_mail = $model->cliente_mail;
             $cliente->usuario_id = $usuario_id;
             
-            if ($cliente->save()) {
+            if ($cliente->save()&& $model->sendEmail()) {
                 return $this->goHome();
             } else {
                 Yii::$app->session->setFlash('error', 'Error al guardar los datos del cliente.');
@@ -363,6 +475,7 @@ public function actionEditarObservacion($turno_id, $fecha)
         'cliente' => $cliente,
     ]);
 }
+
     public function actionRequestPasswordReset()
         {
             $model = new PasswordResetRequestForm();

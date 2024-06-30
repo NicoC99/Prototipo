@@ -108,3 +108,37 @@ a.desc:after {
 #boton{
     width: 300px;
 }
+
+    .fila-edicion {
+        background-color: #f5f5dc; /* Cambia este color al que desees */
+    }
+    
+    .tabla-sistema {
+        background-color: #d0e4f7;   /* Cambia este color al que desees */
+        border: 1px solid black; 
+    }
+    
+    .tabla-sistema th, .tabla-sistema td {
+    border: 1px solid black; /* Thicker black borders for table cells */
+}
+
+.tabla-turnos tr:nth-child(odd) {
+    background-color: #d0e4f7; /* Light blue for odd rows */
+}
+
+.tabla-turnos tr:nth-child(even) {
+    background-color: #f2f2f2; /* Light grey for even rows */
+}
+
+.tabla-turnos, .tabla-turnos th, .tabla-turnos td {
+    border: 1px solid black; /* Thicker black borders for table and cells */
+}
+
+.tabla-horarios {
+    width: 50%;
+    margin: 0 auto;
+}
+
+.tabla-horarios th, .tabla-horarios td {
+    text-align: center;
+}

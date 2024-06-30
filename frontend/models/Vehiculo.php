@@ -32,7 +32,7 @@ class Vehiculo extends \yii\db\ActiveRecord
             [['vehiculo_patente', 'vehiculo_marca', 'vehiculo_vencimiento_rto', 'vehiculo_carga_maxima', 'cliente_cuit'], 'required'],
             [['vehiculo_vencimiento_rto'], 'safe'],
             [['vehiculo_carga_maxima'], 'integer'],
-            [['vehiculo_patente'], 'string', 'max' => 10],
+            [['vehiculo_patente'], 'string', 'max' => 20],
             [['cliente_cuit'], 'string', 'max' => 20],
             [['vehiculo_marca'], 'string', 'max' => 50],
             [['vehiculo_patente'], 'unique'],

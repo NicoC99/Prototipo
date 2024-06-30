@@ -20,10 +20,7 @@ $this->params['breadcrumbs'][] = $this->title;
             <?php $form = ActiveForm::begin(['id' => 'request-password-reset-form']); ?>
 
                 <?= $form->field($model, 'email')->textInput(['autofocus' => true]) ?>
-            <?= $form->field($model, 'captcha')->widget(
-    himiklab\yii2\recaptcha\ReCaptcha::class,
-    ['siteKey' => '6LcCaN8mAAAAAPCR3D4hY7tlJCCzVWwIjnDI2F4X']
-    )->label(false) ?>
+            
 
                 <div class="form-group">
                     <?= Html::submitButton('Enviar', ['class' => 'btn btn-primary']) ?>

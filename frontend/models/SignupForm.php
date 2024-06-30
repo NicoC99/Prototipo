@@ -10,7 +10,7 @@ class SignupForm extends Model
 {
     public $cliente_razon_social;
     public $usuario_nombre;
-    public $usuario_clave;
+    public $password;
     public $cliente_cuit;
     public $cliente_telefono;
     public $cliente_mail;
@@ -36,8 +36,12 @@ class SignupForm extends Model
             ['cliente_mail', 'string', 'max' => 255],
             ['cliente_mail', 'unique', 'targetClass' => '\frontend\models\Clientes', 'message' => 'Este mail ya está registrado.'],
 
-            ['usuario_clave', 'required'],
-            ['usuario_clave', 'string', 'min' => Yii::$app->params['user.passwordMinLength']],
+            ['password', 'required'],
+            ['password', 'string', 'min' => Yii::$app->params['user.passwordMinLength'], 'max' => Yii::$app->params['user.passwordMaxLength']],
+            ['password', 'match', 'pattern' => '/[A-Z]/', 'message' => 'La contraseña debe contener al menos una letra mayúscula.'],
+            ['password', 'match', 'pattern' => '/[a-z]/', 'message' => 'La contraseña debe contener al menos una letra minúscula.'],
+            ['password', 'match', 'pattern' => '/\d/', 'message' => 'La contraseña debe contener al menos un número.'],
+            ['password', 'match', 'pattern' => '/[\W_]/', 'message' => 'La contraseña debe contener al menos un carácter especial.'],
 
             [['cliente_cuit', 'cliente_telefono'], 'required'],
             ['cliente_cuit', 'string', 'max' => 20],
@@ -59,12 +63,12 @@ class SignupForm extends Model
 
         $user = new User();
         $user->usuario_nombre = $this->usuario_nombre;
-        $user->setPassword($this->usuario_clave);
+        $user->setPassword($this->password);
         $user->generateAuthKey();
         $user->generateEmailVerificationToken();
-        $user->status = User::STATUS_ACTIVE;
+        $user->status = User::STATUS_INACTIVE;
 
-        return $user->save() ? $user->id : null;
+        return $user->save() ? $user->usuario_id : null;
     }
 
 
@@ -73,26 +77,39 @@ class SignupForm extends Model
      * @param User $user user model to with email should be send
      * @return bool whether the email was sent
      */
-//protected function sendEmail($user)
-//{
-//    $verifyLink = Yii::$app->urlManager->createAbsoluteUrl(['site/verify-email', 'token' => $user->verification_token]);
 
-       // return Yii::$app->mailer->compose(
-          //  ['html' => 'emailVerifyhtml', 'text' => 'emailVerifytext'],
-        //    ['user' => $user, 'verifyLink' => $verifyLink]
-      //  )
-       //           ->setFrom('support@infinito.ar')
-      //  ->setTo($this->email)
-    //     ->setSubject($this->subject)
-  //       ->send();
+public function sendEmail()
+    {
+        $cliente = Clientes::findOne([
+            'cliente_mail' => $this->cliente_mail,
+        ]);
 
-       // ->setFrom([Yii::$app->params['supportEmail'] => Yii::$app->name . ' robot'])
-        //->setTo($this->email)
-       // ->setSubject('Account registration at ' . Yii::$app->name)
-       // ->send();
-//}
+        if (!$cliente) {
+            return false;
+        }
+
+        $user = User::findOne([
+            'usuario_id' => $cliente->usuario_id,
+            'status' => User::STATUS_INACTIVE,
+        ]);
+
+        if ($user === null) {
+            return false;
+        }
+
+        return Yii::$app
+            ->mailer->compose(
+                ['html' => 'emailVerify-html', 'text' => 'emailVerify-text'],
+                ['user' => $user]
+            )
+            ->setFrom('no-reply@infinito.ar')
+            ->setTo($this->cliente_mail)
+            ->setSubject('Cuenta registrada en ' . Yii::$app->name)
+            ->send();
+    }
 
 }
+
 
 
 

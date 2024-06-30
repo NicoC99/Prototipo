@@ -32,7 +32,7 @@ class Conductor extends \yii\db\ActiveRecord
             [['conductor_nombre', 'conductor_dni', 'cliente_cuit', 'conductor_telefono'], 'required'],
             [['conductor_vigencia_licencia'], 'safe'],
             [['conductor_nombre'], 'string', 'max' => 50],
-            [['conductor_dni'], 'string', 'max' => 10],
+            [['conductor_dni'], 'string', 'max' => 20],
             [['cliente_cuit'], 'string', 'max' => 30],
             [['conductor_telefono'], 'string', 'max' => 15],
             [['conductor_dni'], 'unique'],
